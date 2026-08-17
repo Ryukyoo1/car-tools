@@ -1,0 +1,13 @@
+services:
+  car-tools:
+    build: .
+    container_name: car-tools
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

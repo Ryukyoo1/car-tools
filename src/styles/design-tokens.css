@@ -1,0 +1,242 @@
+/* =====================================================================
+   CAR TOOLS — Design Tokens
+   Single source of truth for color, glass, type, spacing & radii.
+   Every component reads from these variables. No random colors anywhere.
+   ===================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* --- Backgrounds (never pure black) --- */
+  --bg-primary: #05070a;
+  --bg-secondary: #080c12;
+  --bg-tertiary: #0b1118;
+  --bg-elevated: #101720;
+
+  /* --- Glass surfaces --- */
+  --glass-bg: rgba(255, 255, 255, 0.045);
+  --glass-bg-strong: rgba(255, 255, 255, 0.07);
+  --glass-bg-soft: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-strong: rgba(255, 255, 255, 0.14);
+  --glass-blur: 18px;
+  --glass-blur-strong: 28px;
+  --glass-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+
+  /* --- Text --- */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.62);
+  --text-muted: rgba(255, 255, 255, 0.38);
+  --text-faint: rgba(255, 255, 255, 0.2);
+
+  /* --- Accent palette (low saturation, automotive) --- */
+  --accent-blue: #78afff;
+  --accent-purple: #9b8cff;
+  --accent-gray: #aeb6c2;
+  --accent-amber: #f2b45a;
+  --accent-green: #4fd18b;
+  --accent-cyan: #4fd8e8;
+  --accent-yellow: #f4d45c;
+  --accent-indigo: #7e8cff;
+  --accent-red: #e82127;
+
+  /* Active accent — overridden per tool via .accent-* or inline --accent */
+  --accent: var(--accent-blue);
+
+  /* --- Weather-specific tokens (single source of truth, no random colors) --- */
+  --weather-bg: #070817;
+  --weather-surface: rgba(255, 255, 255, 0.04);
+  --weather-surface-strong: rgba(255, 255, 255, 0.08);
+  --weather-border: rgba(255, 255, 255, 0.08);
+  --weather-text: rgba(255, 255, 255, 0.96);
+  --weather-muted: rgba(255, 255, 255, 0.5);
+  --weather-accent: var(--accent-blue);
+  --weather-rain: #6ea8ff; /* pale blue, never vivid */
+  --weather-warning: #f2b45a; /* amber, used sparingly */
+
+  /* --- Radii --- */
+  --radius-sm: 14px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-tile: 24px;
+  --radius-pill: 999px;
+
+  /* --- Spacing --- */
+  --space-sm: 12px;
+  --space-md: 20px;
+  --space-lg: 32px;
+
+  /* --- Typography --- */
+  --font-sans: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* =====================================================================
+   Accent helpers — set the active --accent for a subtree
+   ===================================================================== */
+.accent-blue {
+  --accent: var(--accent-blue);
+}
+.accent-purple {
+  --accent: var(--accent-purple);
+}
+.accent-gray {
+  --accent: var(--accent-gray);
+}
+.accent-amber {
+  --accent: var(--accent-amber);
+}
+.accent-green {
+  --accent: var(--accent-green);
+}
+.accent-cyan {
+  --accent: var(--accent-cyan);
+}
+.accent-yellow {
+  --accent: var(--accent-yellow);
+}
+.accent-indigo {
+  --accent: var(--accent-indigo);
+}
+.accent-red {
+  --accent: var(--accent-red);
+}
+
+/* =====================================================================
+   Glass surfaces
+   ===================================================================== */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+}
+.glass-strong {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(140%);
+  box-shadow: var(--glass-shadow);
+}
+.glass-soft {
+  background: var(--glass-bg-soft);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+}
+
+/* Accent glow — used for active states / hero icons */
+.glow-accent {
+  box-shadow: 0 0 44px -10px var(--accent);
+}
+.text-accent {
+  color: var(--accent);
+}
+.border-accent {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.bg-accent-soft {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* =====================================================================
+   Base page background — calm automotive ambient gradient
+   ===================================================================== */
+.page-bg {
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(91, 156, 255, 0.06), transparent 60%),
+    radial-gradient(100% 70% at 100% 110%, rgba(126, 140, 255, 0.05), transparent 55%),
+    linear-gradient(180deg, var(--bg-secondary), var(--bg-primary));
+}
+
+/* Slow breathing glow used behind the home grid / hero icons */
+@keyframes ambient-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+.ambient-breathe {
+  animation: ambient-breathe 14s ease-in-out infinite;
+}
+
+/* =====================================================================
+   Text helpers
+   ===================================================================== */
+.text-secondary {
+  color: var(--text-secondary);
+}
+.text-muted {
+  color: var(--text-muted);
+}
+.text-faint {
+  color: var(--text-faint);
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* =====================================================================
+   Scrollbar — hidden for the immersive car HMI feel
+   ===================================================================== */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* =====================================================================
+   Range slider (GlassSlider / volume / brightness)
+   ===================================================================== */
+input[type='range'].glass-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  outline: none;
+  cursor: pointer;
+}
+input[type='range'].glass-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.15s ease;
+}
+input[type='range'].glass-range::-webkit-slider-thumb:active {
+  transform: scale(1.12);
+}
+input[type='range'].glass-range::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Hide number-input spinners for a clean automotive look */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

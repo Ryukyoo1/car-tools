@@ -1,0 +1,196 @@
+@import './styles/design-tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  letter-spacing: -0.01em;
+}
+
+/* Allow text selection only where the user genuinely needs to read/copy. */
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  font-family: var(--font-sans);
+}
+
+/* =====================================================================
+   Dynamic weather / ambient scene backgrounds
+   (kept from the original implementation — Canvas/SVG/CSS only, no WebGL)
+   ===================================================================== */
+@keyframes sun-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateX(-50%) scale(1.06);
+  }
+}
+.sun-pulse {
+  animation: sun-pulse 14s ease-in-out infinite;
+}
+
+@keyframes drift-x {
+  from {
+    transform: translateX(-10%);
+  }
+  to {
+    transform: translateX(10%);
+  }
+}
+.drift {
+  animation: drift-x 60s ease-in-out infinite alternate;
+}
+
+@keyframes fog-drift {
+  from {
+    transform: translateX(-15%);
+  }
+  to {
+    transform: translateX(15%);
+  }
+}
+.fog-drift {
+  animation: fog-drift 80s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+.twinkle {
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+@keyframes wave-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.wave-scroll {
+  animation: wave-scroll 14s linear infinite;
+}
+.wave-scroll-slow {
+  animation: wave-scroll 26s linear infinite;
+}
+
+@keyframes road-scroll {
+  from {
+    background-position-y: 0;
+  }
+  to {
+    background-position-y: 64px;
+  }
+}
+.road-scroll {
+  animation: road-scroll 1.1s linear infinite;
+}
+
+@keyframes ember-flicker {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.08);
+  }
+}
+.ember-flicker {
+  animation: ember-flicker 3.5s ease-in-out infinite;
+}
+
+@keyframes bokeh-float {
+  from {
+    transform: translateY(0) translateX(0);
+  }
+  to {
+    transform: translateY(-6%) translateX(4%);
+  }
+}
+.bokeh-float {
+  animation: bokeh-float 24s ease-in-out infinite alternate;
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+.glow-pulse {
+  animation: glow-pulse 6s ease-in-out infinite;
+}
+
+@keyframes drift-slow {
+  from {
+    transform: translateX(-8%);
+  }
+  to {
+    transform: translateX(8%);
+  }
+}
+.drift-slow {
+  animation: drift-slow 50s ease-in-out infinite alternate;
+}
+
+/* =====================================================================
+   Reduced motion — disable particles, background motion & large transitions
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .sun-pulse,
+  .drift,
+  .fog-drift,
+  .twinkle,
+  .wave-scroll,
+  .wave-scroll-slow,
+  .road-scroll,
+  .ember-flicker,
+  .bokeh-float,
+  .glow-pulse,
+  .drift-slow,
+  .ambient-breathe {
+    animation: none !important;
+  }
+}
