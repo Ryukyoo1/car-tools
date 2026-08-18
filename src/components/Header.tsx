@@ -31,7 +31,7 @@ export function Header() {
 
   return (
     <div className="flex items-center justify-between px-1">
-      <span className="text-3xl font-bold tracking-tight text-white sm:text-4xl">CAR TOOLS</span>
+      <span className="text-3xl font-bold tracking-tight text-white sm:text-4xl">TOOLS</span>
       <div className="flex items-center gap-4">
         <span className="text-2xl font-semibold tabular-nums text-white/90 sm:text-3xl">{clock}</span>
         <span className="text-xl font-medium tabular-nums text-white/70 sm:text-2xl">{temp}</span>

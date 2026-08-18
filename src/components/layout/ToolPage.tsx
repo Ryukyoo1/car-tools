@@ -40,7 +40,7 @@ export function ToolPage({ title, accent = 'blue', children, navRight, bleed = f
       )}
       {!hideNav && (
         <header className="relative z-10 flex items-center justify-between gap-3 px-4 pt-4 sm:px-8 sm:pt-6">
-          <IconButton accent={accent} label="Back to CAR TOOLS" onClick={() => navigate('/')}>
+          <IconButton accent={accent} label="Back to TOOLS" onClick={() => navigate('/')}>
             <ArrowLeft className="h-6 w-6" strokeWidth={1.8} />
           </IconButton>
 
@@ -57,7 +57,7 @@ export function ToolPage({ title, accent = 'blue', children, navRight, bleed = f
       {bleed ? (
         <div className="relative z-10 flex-1">{children}</div>
       ) : (
-        <div className="no-scrollbar relative z-10 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-8">{children}</div>
+        <div className="no-scrollbar relative z-10 flex-1 overflow-y-auto px-4 pb-6 pt-2 sm:px-8">{children}</div>
       )}
     </div>
   )

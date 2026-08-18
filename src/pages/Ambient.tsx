@@ -1,20 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Gauge, Volume2, VolumeX, AlertTriangle } from 'lucide-react'
+import { Gauge, Volume2, AlertTriangle } from 'lucide-react'
 import { AmbientScene } from '@/components/ambient/AmbientScene'
 import { PlayButton } from '@/components/ambient/PlayButton'
-import { VolumeControl } from '@/components/ambient/VolumeControl'
 import { TimerControl } from '@/components/ambient/TimerControl'
-import { SoundSelector } from '@/components/ambient/SoundSelector'
-import { Mixer } from '@/components/ambient/Mixer'
-import { PresetSelector } from '@/components/ambient/PresetSelector'
+import { SoundList } from '@/components/ambient/SoundList'
+import { CategoryIconGrid } from '@/components/ambient/CategoryIconGrid'
 import { DriveMode } from '@/components/ambient/DriveMode'
-import { SOURCE_META } from '@/components/ambient/SourceMeta'
+import { CATEGORY_META } from '@/components/ambient/SourceMeta'
 import { ToolPage } from '@/components/layout/ToolPage'
 import { Spinner } from '@/components/Spinner'
 import { useAmbient } from '@/hooks/useAmbient'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
-import type { AmbientSource, TimerMinutes } from '@/types/ambient'
+import type { AmbientCategory, TimerMinutes } from '@/types/ambient'
 
 const SAFETY_KEY = 'ambientSafetySeen'
 
@@ -24,6 +22,7 @@ export default function Ambient() {
 
   const [driveMode, setDriveMode] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [activeCategory, setActiveCategory] = useState<AmbientCategory>('rain')
   const [showSafety, setShowSafety] = useState(() => {
     try {
       return localStorage.getItem(SAFETY_KEY) !== '1'
@@ -33,11 +32,11 @@ export default function Ambient() {
   })
   const loadingTimer = useRef<number | null>(null)
 
-  const meta = SOURCE_META[ambient.primary]
+  const current = ambient.currentTrack
+  const category = current?.category ?? activeCategory ?? 'rain'
+  const meta = CATEGORY_META[category]
   const accent = meta.theme.accent
-  const activeSet = new Set<AmbientSource>(ambient.layers.map((l) => l.source))
 
-  // Clear the brief "starting" state once playback begins or resume is needed.
   useEffect(() => {
     if (ambient.playing || ambient.needsResume) setLoading(false)
   }, [ambient.playing, ambient.needsResume])
@@ -60,12 +59,11 @@ export default function Ambient() {
     }
   }
 
-  // ---- Unsupported browser -----------------------------------------------
   if (!ambient.supported) {
     return (
       <ToolPage title="AMBIENT" accent="indigo">
         <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
-          <VolumeX className="h-12 w-12 text-accent" strokeWidth={1.8} />
+          <Volume2 className="h-12 w-12 text-white/40" strokeWidth={1.8} />
           <h2 className="text-xl font-light text-white">Audio unavailable</h2>
           <p className="max-w-sm text-secondary">
             Your browser does not support the Web Audio API required for ambient sounds.
@@ -79,25 +77,25 @@ export default function Ambient() {
     <ToolPage
       title="AMBIENT"
       accent="indigo"
-      accentColor={meta.theme.accent}
-      backdrop={<AmbientScene source={ambient.primary} reduced={reduced} />}
+      accentColor={accent}
+      backdrop={<AmbientScene source={category} reduced={reduced} />}
       bleed
     >
-      <div className="relative z-10 flex h-full flex-col">
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 no-scrollbar lg:flex-row lg:gap-6 lg:overflow-hidden lg:px-8">
-          {/* Hero column: sound identity + transport + master volume */}
-          <section className="flex flex-col items-center justify-center gap-6 lg:w-[40%] lg:shrink-0">
+      <div
+        className="relative z-10 flex h-full flex-col p-4 lg:flex-row lg:gap-5 lg:p-6"
+        style={{ '--accent': accent } as { [key: string]: string }}
+      >
+        {/* Left: big player identity + transport */}
+        <section className="glass flex shrink-0 flex-col items-center justify-center rounded-3xl px-6 py-8 lg:w-[38%] lg:py-0">
+          <div className="flex w-full flex-1 flex-col items-center justify-center gap-10">
             <div className="text-center">
-              <div className="text-5xl font-light tracking-tight text-white sm:text-6xl">{meta.label}</div>
+              <div
+                className="text-5xl font-light tracking-tight text-white sm:text-6xl"
+                style={{ textShadow: `0 0 40px ${meta.theme.glow}` }}
+              >
+                {meta.label}
+              </div>
               <div className="mt-1 text-base text-white/55">{meta.zh}</div>
-              {ambient.mixCount > 1 && (
-                <div
-                  className="mx-auto mt-3 inline-block rounded-full px-3 py-1 text-xs font-medium"
-                  style={{ background: `${accent}22`, color: accent }}
-                >
-                  Mixing {ambient.mixCount} sounds
-                </div>
-              )}
             </div>
 
             <div className="relative">
@@ -108,55 +106,44 @@ export default function Ambient() {
                 </div>
               )}
             </div>
+          </div>
+        </section>
 
-            <div className="w-full max-w-sm">
-              <VolumeControl value={ambient.master} onChange={ambient.setMaster} accent={accent} />
-            </div>
-          </section>
+        {/* Right: timer + category icons + sound list */}
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-0 py-0 no-scrollbar lg:px-0 lg:py-0">
+          {showSafety && (
+            <button
+              onClick={dismissSafety}
+              className="flex items-start gap-3 rounded-2xl border border-accent bg-accent-soft p-3 text-left text-sm text-white/80"
+            >
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-accent" strokeWidth={1.8} />
+              <span>
+                Use only when parked. Tap to dismiss.
+                <span className="ml-1 text-white/50">仅在停车时使用。</span>
+              </span>
+            </button>
+          )}
 
-          {/* Controls column: timer, sources, mixer, presets */}
-          <section className="flex flex-col gap-4 no-scrollbar lg:flex-1 lg:overflow-y-auto lg:pb-2">
-            {showSafety && (
-              <button
-                onClick={dismissSafety}
-                className="flex items-start gap-3 rounded-md border border-accent bg-accent-soft p-3 text-left text-sm text-white/80"
-              >
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-accent" strokeWidth={1.8} />
-                <span>
-                  Use only when parked. Tap to dismiss.
-                  <span className="ml-1 text-white/50">仅在停车时使用。</span>
-                </span>
-              </button>
-            )}
+          <TimerControl
+            timer={ambient.timer}
+            onSet={(m: TimerMinutes) => ambient.setTimer(m)}
+            remainingLabel={ambient.remainingLabel}
+            active={ambient.timer > 0 && ambient.playing}
+            onClear={ambient.clearTimer}
+            accent={accent}
+          />
 
-            <TimerControl
-              timer={ambient.timer}
-              onSet={(m: TimerMinutes) => ambient.setTimer(m)}
-              remainingLabel={ambient.remainingLabel}
-              active={ambient.timer > 0 && ambient.playing}
-              onClear={ambient.clearTimer}
-              accent={accent}
-            />
+          <CategoryIconGrid activeCategory={activeCategory} onSelect={setActiveCategory} />
 
-            <SoundSelector active={activeSet} primary={ambient.primary} onToggle={ambient.toggleSource} />
+          <SoundList
+            currentTrack={ambient.currentTrack}
+            playing={ambient.playing}
+            onPlay={ambient.playTrack}
+            activeCategory={activeCategory}
+          />
 
-            <Mixer
-              layers={ambient.layers}
-              onChangeVolume={ambient.changeLayerVolume}
-              onRemove={ambient.toggleSource}
-              primary={ambient.primary}
-            />
-
-            <PresetSelector
-              presets={ambient.defaultPresets}
-              favorites={ambient.favorites}
-              activeId={ambient.presetId}
-              canSave={ambient.draft.length > 0}
-              onLoad={ambient.loadPreset}
-              onSave={ambient.saveFavorite}
-              onDelete={ambient.deleteFavorite}
-            />
-          </section>
+          {/* Spacer to keep drive-mode button clear */}
+          <div className="h-20 lg:h-0" />
         </div>
 
         {/* Drive mode entry */}
@@ -169,7 +156,7 @@ export default function Ambient() {
         </button>
       </div>
 
-      {/* Resume overlay (autoplay policy blocked the AudioContext) */}
+      {/* Resume overlay */}
       <AnimatePresence>
         {ambient.needsResume && (
           <motion.div
@@ -191,10 +178,9 @@ export default function Ambient() {
         {driveMode && (
           <DriveMode
             meta={meta}
+            currentTitle={current?.title}
             playing={ambient.playing}
             onTogglePlay={ambient.togglePlay}
-            master={ambient.master}
-            onMaster={ambient.setMaster}
             timer={ambient.timer}
             onSetTimer={ambient.setTimer}
             remainingLabel={ambient.remainingLabel}

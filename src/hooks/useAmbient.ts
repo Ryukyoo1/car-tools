@@ -1,68 +1,45 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ambientEngine } from '@/services/audio'
 import { storage } from '@/services/storage'
-import { DEFAULT_LAYER_VOLUME, MAX_LAYERS } from '@/components/ambient/SourceMeta'
-import { DEFAULT_PRESETS, formatClock } from '@/utils/ambient'
-import type {
-  AmbientLayer,
-  AmbientPreset,
-  AmbientSource,
-  TimerMinutes,
-} from '@/types/ambient'
+import { AMBIENT_TRACKS, formatDuration } from '@/components/ambient/SourceMeta'
+import type { AmbientTrack, TimerMinutes } from '@/types/ambient'
 
 const FADE_AT = 10 // seconds before the sleep timer ends we begin ducking
 
 export interface UseAmbient {
   supported: boolean
   playing: boolean
-  layers: AmbientLayer[]
-  draft: AmbientLayer[]
-  primary: AmbientSource
-  mixCount: number
-  master: number
+  currentTrack: AmbientTrack | null
   timer: TimerMinutes
   remaining: number
   remainingLabel: string
   timerFading: boolean
   needsResume: boolean
-  favorites: AmbientPreset[]
-  presetId: string | null
-  defaultPresets: AmbientPreset[]
+  playTrack: (track: AmbientTrack) => void
   togglePlay: () => void
-  toggleSource: (source: AmbientSource) => void
-  changeLayerVolume: (source: AmbientSource, volume: number) => void
-  setMaster: (volume: number) => void
   setTimer: (minutes: TimerMinutes) => void
   clearTimer: () => void
-  loadPreset: (preset: AmbientPreset) => void
-  saveFavorite: (name: string) => void
-  deleteFavorite: (id: string) => void
   resume: () => void
 }
 
 export function useAmbient(): UseAmbient {
   const initial = storage.getAmbientSettings()
-  const initialDraft =
-    initial.layers.length > 0 ? initial.layers : [{ source: 'rain' as AmbientSource, volume: DEFAULT_LAYER_VOLUME }]
+  const initialTrack = AMBIENT_TRACKS.find((t) => t.id === initial.lastTrackId) ?? AMBIENT_TRACKS[0]
 
-  const [layers, setLayers] = useState<AmbientLayer[]>([])
-  const [draft, setDraft] = useState<AmbientLayer[]>(initialDraft)
-  const [master, setMasterState] = useState(initial.master)
+  const [currentTrack, setCurrentTrack] = useState<AmbientTrack | null>(null)
+  const [playing, setPlaying] = useState(false)
   const [timer, setTimerState] = useState<TimerMinutes>(initial.timer)
   const [remaining, setRemaining] = useState(0)
   const [needsResume, setNeedsResume] = useState(false)
-  const [favorites, setFavorites] = useState<AmbientPreset[]>(initial.favorites)
-  const [presetId, setPresetId] = useState<string | null>(initial.presetId)
-
-  const [supported] = useState<boolean>(ambientEngine.isSupported())
   const fadedRef = useRef(false)
   const lastTickRef = useRef(0)
-  const playing = layers.length > 0
+
+  const supported = ambientEngine.isSupported()
 
   // ---- Persistence ----------------------------------------------------------
   useEffect(() => {
-    storage.saveAmbientSettings({ layers: draft, master, timer, presetId, favorites })
-  }, [draft, master, timer, presetId, favorites])
+    storage.saveAmbientSettings({ timer, lastTrackId: currentTrack?.id ?? null })
+  }, [timer, currentTrack])
 
   // ---- Sleep timer countdown (timestamp-based, survives background tabs) -----
   useEffect(() => {
@@ -82,12 +59,16 @@ export function useAmbient(): UseAmbient {
         const next = Math.max(0, prev - dt)
         if (next > 0 && next <= FADE_AT && !fadedRef.current) {
           fadedRef.current = true
-          ambientEngine.fadeOutAll(FADE_AT)
+          ambientEngine.fadeOut(FADE_AT, () => {
+            setPlaying(false)
+            setCurrentTrack(null)
+            setTimerState(0)
+          })
         }
         if (next <= 0) {
           window.clearInterval(id)
-          ambientEngine.stopAll()
-          setLayers([])
+          setPlaying(false)
+          setCurrentTrack(null)
           setTimerState(0)
         }
         return next
@@ -99,83 +80,57 @@ export function useAmbient(): UseAmbient {
   // ---- Engine lifecycle -----------------------------------------------------
   useEffect(() => {
     return () => {
-      ambientEngine.stopAll()
+      ambientEngine.stop()
     }
   }, [])
 
-  const applyLayers = useCallback((next: AmbientLayer[]) => {
-    next.forEach((l) => ambientEngine.setLayer(l.source, l.volume))
-    setLayers(next)
-    setDraft(next)
-  }, [])
-
-  const togglePlay = useCallback(() => {
-    if (layers.length > 0) {
-      ambientEngine.stopAll()
-      setLayers([])
-      return
-    }
-    const start = draft.length > 0 ? draft : [{ source: 'rain' as AmbientSource, volume: DEFAULT_LAYER_VOLUME }]
-    void ambientEngine.resume().then((ok) => {
+  const playTrack = useCallback(
+    async (track: AmbientTrack) => {
+      if (currentTrack?.id === track.id && playing) {
+        ambientEngine.stop()
+        setPlaying(false)
+        return
+      }
+      const ok = await ambientEngine.resume()
       if (!ok) {
         setNeedsResume(true)
         return
       }
       setNeedsResume(false)
-      applyLayers(start)
-    })
-  }, [layers.length, draft, applyLayers])
-
-  const toggleSource = useCallback(
-    (source: AmbientSource) => {
-      const existing = layers.find((l) => l.source === source)
-      if (existing) {
-        ambientEngine.removeLayer(source)
-        const next = layers.filter((l) => l.source !== source)
-        setLayers(next)
-        if (next.length) setDraft(next)
-        return
+      const started = await ambientEngine.play(track)
+      if (started) {
+        setCurrentTrack(track)
+        setPlaying(true)
       }
-      void ambientEngine.resume().then((ok) => {
-        if (!ok) {
-          setNeedsResume(true)
-          return
-        }
-        setNeedsResume(false)
-        let next = [...layers]
-        if (next.length >= MAX_LAYERS) {
-          const removed = next.shift()
-          if (removed) ambientEngine.removeLayer(removed.source)
-        }
-        next.push({ source, volume: DEFAULT_LAYER_VOLUME })
-        ambientEngine.setLayer(source, DEFAULT_LAYER_VOLUME)
-        setLayers(next)
-        setDraft(next)
-      })
     },
-    [layers],
+    [currentTrack, playing],
   )
 
-  const changeLayerVolume = useCallback(
-    (source: AmbientSource, volume: number) => {
-      ambientEngine.setLayerVolume(source, volume)
-      const next = layers.map((l) => (l.source === source ? { ...l, volume } : l))
-      setLayers(next)
-      setDraft(next)
-    },
-    [layers],
-  )
-
-  const setMaster = useCallback((volume: number) => {
-    ambientEngine.setMasterVolume(volume)
-    setMasterState(volume)
-  }, [])
+  const togglePlay = useCallback(async () => {
+    if (playing) {
+      ambientEngine.stop()
+      setPlaying(false)
+      return
+    }
+    const track = currentTrack ?? initialTrack
+    const ok = await ambientEngine.resume()
+    if (!ok) {
+      setNeedsResume(true)
+      return
+    }
+    setNeedsResume(false)
+    const started = await ambientEngine.play(track)
+    if (started) {
+      setCurrentTrack(track)
+      setPlaying(true)
+    }
+  }, [playing, currentTrack, initialTrack])
 
   const setTimer = useCallback((minutes: TimerMinutes) => {
     setTimerState(minutes)
+    setRemaining(minutes > 0 ? minutes * 60 : 0)
     fadedRef.current = false
     lastTickRef.current = 0
-    setRemaining(minutes > 0 ? minutes * 60 : 0)
   }, [])
 
   const clearTimer = useCallback(() => {
@@ -185,77 +140,30 @@ export function useAmbient(): UseAmbient {
     lastTickRef.current = 0
   }, [])
 
-  const loadPreset = useCallback(
-    (preset: AmbientPreset) => {
-      void ambientEngine.resume().then((ok) => {
-        if (!ok) {
-          setNeedsResume(true)
-          return
-        }
-        setNeedsResume(false)
-        ambientEngine.stopAll()
-        const next = preset.layers.map((l) => ({ ...l }))
-        applyLayers(next)
-        setPresetId(preset.id)
-      })
-    },
-    [applyLayers],
-  )
-
-  const saveFavorite = useCallback(
-    (name: string) => {
-      if (draft.length === 0) return
-      const preset: AmbientPreset = {
-        id: `fav-${Date.now()}`,
-        name: name.trim() || 'My Mix',
-        subtitle: draft.map((l) => l.source).join(' + '),
-        layers: draft.map((l) => ({ ...l })),
-      }
-      setFavorites((prev) => [preset, ...prev].slice(0, 10))
-      setPresetId(preset.id)
-    },
-    [draft],
-  )
-
-  const deleteFavorite = useCallback((id: string) => {
-    setFavorites((prev) => prev.filter((p) => p.id !== id))
-    setPresetId((cur) => (cur === id ? null : cur))
-  }, [])
-
   const resume = useCallback(() => {
     void ambientEngine.resume().then((ok) => {
       setNeedsResume(!ok)
-      if (ok && layers.length > 0) applyLayers(layers)
+      if (ok && currentTrack) {
+        void ambientEngine.play(currentTrack).then((started) => {
+          setPlaying(started)
+        })
+      }
     })
-  }, [layers, applyLayers])
-
-  const primary: AmbientSource = layers[0]?.source ?? draft[0]?.source ?? 'rain'
+  }, [currentTrack])
 
   return {
     supported,
     playing,
-    layers,
-    draft,
-    primary,
-    mixCount: layers.length,
-    master,
+    currentTrack,
     timer,
     remaining,
-    remainingLabel: formatClock(remaining),
+    remainingLabel: formatDuration(remaining),
     timerFading: fadedRef.current,
     needsResume,
-    favorites,
-    presetId,
-    defaultPresets: DEFAULT_PRESETS,
+    playTrack,
     togglePlay,
-    toggleSource,
-    changeLayerVolume,
-    setMaster,
     setTimer,
     clearTimer,
-    loadPreset,
-    saveFavorite,
-    deleteFavorite,
     resume,
   }
 }

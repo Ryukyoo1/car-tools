@@ -35,15 +35,11 @@ const DEFAULT_SETTINGS: UserSettings = {
   lastCity: null,
   tempUnit: 'C',
   speedUnit: 'kmh',
-  teslamate: null,
 }
 
 const DEFAULT_AMBIENT = {
-  master: 0.7,
-  layers: [] as { source: string; volume: number }[],
   timer: 0 as number,
-  presetId: null as string | null,
-  favorites: [] as unknown[],
+  lastTrackId: null as string | null,
 }
 
 export const storage = {
@@ -77,13 +73,8 @@ export const storage = {
   getAmbientSettings(): AmbientSettings {
     const stored = read<Partial<AmbientSettings>>(KEYS.ambientSettings, {})
     return {
-      master: typeof stored.master === 'number' ? stored.master : DEFAULT_AMBIENT.master,
-      layers: Array.isArray(stored.layers) ? (stored.layers as AmbientSettings['layers']) : [],
-      timer: (stored.timer as AmbientSettings['timer']) ?? 0,
-      presetId: typeof stored.presetId === 'string' ? stored.presetId : null,
-      favorites: Array.isArray(stored.favorites)
-        ? (stored.favorites as AmbientSettings['favorites'])
-        : [],
+      timer: (stored.timer as AmbientSettings['timer']) ?? DEFAULT_AMBIENT.timer,
+      lastTrackId: typeof stored.lastTrackId === 'string' ? stored.lastTrackId : DEFAULT_AMBIENT.lastTrackId,
     }
   },
 

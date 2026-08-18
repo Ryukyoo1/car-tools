@@ -8,13 +8,13 @@ interface Props {
   unit: Unit
 }
 
-const HEIGHT = 120
-const LABEL_MARGIN = 28
-const BASELINE = 96
-const MAJOR_TOP = 30
-const MED_TOP = 54
-const MIN_TOP = 72
-const LABEL_Y = 14
+const HEIGHT = 200
+const LABEL_MARGIN = 36
+const BASELINE = 168
+const MAJOR_TOP = 48
+const MED_TOP = 100
+const MIN_TOP = 134
+const LABEL_Y = 24
 
 /**
  * A full-width, static on-screen ruler calibrated to the selected vehicle's
@@ -121,10 +121,10 @@ export function ScreenRuler({ ppi, unit }: Props) {
                 key={`l${i}`}
                 x={t.x}
                 y={LABEL_Y}
-                fill="rgba(255,255,255,0.85)"
-                fontSize={13}
-                textAnchor="middle"
-                fontWeight={500}
+                fill="rgba(255,255,255,0.9)"
+                fontSize={18}
+                textAnchor={t.x < 12 ? 'start' : 'middle'}
+                fontWeight={600}
               >
                 {t.label}
               </text>
@@ -140,7 +140,7 @@ export function ScreenRuler({ ppi, unit }: Props) {
           style={{ left: marker, height: HEIGHT, transform: 'translateX(-50%)' }}
         >
           <div className="w-px flex-1 bg-white/80" />
-          <div className="mb-1 text-[11px] font-medium tabular-nums text-white/90">
+          <div className="mb-2 text-base font-semibold tabular-nums text-white">
             {measured.toFixed(unit === 'cm' ? 1 : 2)} {unit}
           </div>
         </div>

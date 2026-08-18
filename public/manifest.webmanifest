@@ -1,6 +1,6 @@
 {
-  "name": "CAR TOOLS",
-  "short_name": "CAR TOOLS",
+  "name": "TOOLS",
+  "short_name": "TOOLS",
   "description": "Smart tools for every drive.",
   "start_url": "./",
   "scope": "./",

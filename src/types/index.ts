@@ -8,15 +8,6 @@ export interface ParkingRecord {
   note: string
 }
 
-export interface TeslaMateConfig {
-  /** TeslaMate HTTP API base, e.g. https://your-host/api/v1 */
-  baseUrl: string
-  /** API key, passed as the `api_key` query parameter */
-  apiKey: string
-  /** Vehicle id (TeslaMate calls it car_id), usually 1 */
-  carId: number
-}
-
 export interface UserSettings {
   defaultElectricityPrice: number
   defaultBatteryCapacity: number
@@ -25,16 +16,13 @@ export interface UserSettings {
   lastCity: string | null
   tempUnit: 'C' | 'F'
   speedUnit: 'kmh' | 'mph'
-  /** TeslaMate binding; null until the user connects. */
-  teslamate: TeslaMateConfig | null
 }
 
 export type MapProvider = 'google' | 'apple' | 'amap'
 
 export type {
-  AmbientSource,
-  AmbientLayer,
-  AmbientPreset,
+  AmbientCategory,
+  AmbientTrack,
   AmbientSettings,
   TimerMinutes,
 } from './ambient'

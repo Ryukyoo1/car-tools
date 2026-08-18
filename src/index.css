@@ -156,6 +156,38 @@ textarea {
   animation: glow-pulse 6s ease-in-out infinite;
 }
 
+/* =====================================================================
+   Timer — ambient border that pulses in sync with each second tick
+   ===================================================================== */
+@keyframes timer-beat-ring {
+  0% {
+    box-shadow:
+      inset 0 0 0 2px rgba(168, 85, 247, 0.85),
+      inset 0 0 70px 16px rgba(168, 85, 247, 0.55);
+    opacity: 1;
+  }
+  100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(168, 85, 247, 0.18),
+      inset 0 0 34px 6px rgba(168, 85, 247, 0.18);
+    opacity: 0.65;
+  }
+}
+.timer-beat-ring {
+  animation: timer-beat-ring 1s ease-out forwards;
+}
+
+@keyframes waveform-pulse {
+  0% {
+    opacity: 0.45;
+    transform: scaleY(0.4);
+  }
+  100% {
+    opacity: 0.95;
+    transform: scaleY(1);
+  }
+}
+
 @keyframes drift-slow {
   from {
     transform: translateX(-8%);
@@ -190,7 +222,8 @@ textarea {
   .bokeh-float,
   .glow-pulse,
   .drift-slow,
-  .ambient-breathe {
+  .ambient-breathe,
+  .timer-beat-ring {
     animation: none !important;
   }
 }

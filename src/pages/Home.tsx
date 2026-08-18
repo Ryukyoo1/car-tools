@@ -1,7 +1,6 @@
 import {
   Timer,
   Calculator,
-  BatteryCharging,
   Ruler,
   Flashlight,
   CloudSun,
@@ -28,7 +27,6 @@ type ToolDef = {
 const tools: ToolDef[] = [
   { id: 'timer', to: '/timer', icon: Timer, title: 'Timer', subtitle: '计时器', accent: 'purple' },
   { id: 'calculator', to: '/calculator', icon: Calculator, title: 'Calculator', subtitle: '计算器', accent: 'gray' },
-  { id: 'charging', to: '/charging', icon: BatteryCharging, title: 'Charging', subtitle: '充电', accent: 'green', emphasized: true },
   { id: 'measure', to: '/measure', icon: Ruler, title: 'Measure', subtitle: '测量', accent: 'cyan' },
   { id: 'flashlight', to: '/flashlight', icon: Flashlight, title: 'Flashlight', subtitle: '手电筒', accent: 'yellow' },
   { id: 'weather', to: '/weather', icon: CloudSun, title: 'Weather', subtitle: '天气', accent: 'blue', emphasized: true },
@@ -63,7 +61,7 @@ export default function Home() {
           {tools.map((t) => (
             <ToolCard key={t.id} {...t} />
           ))}
-          {Array.from({ length: 2 }).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={`empty-${i}`}
               aria-hidden="true"
@@ -73,8 +71,15 @@ export default function Home() {
         </ToolGrid>
       </main>
 
-      <footer className="relative z-10 flex items-center justify-between px-6 pb-6 text-[10px] tracking-[0.15em] text-white/30 sm:px-12">
-        <span>CAR TOOLS SYSTEM</span>
+      <footer className="relative z-10 flex items-end justify-between px-6 pb-6 sm:px-12">
+        <a
+          href="https://resume.maono1.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[10px] tracking-[0.15em] text-white/30 transition-colors hover:text-accent hover:underline"
+        >
+          may be i need a job. XD
+        </a>
         <SystemStatus label="READY" />
       </footer>
     </div>

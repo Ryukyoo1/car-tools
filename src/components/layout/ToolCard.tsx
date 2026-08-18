@@ -11,7 +11,7 @@ export interface ToolCardProps {
   title: string
   subtitle: string
   accent: AccentName
-  /** Weather / Charging / Parking read slightly warmer via a stronger tint. */
+  /** Weather reads slightly warmer via a stronger tint. */
   emphasized?: boolean
 }
 

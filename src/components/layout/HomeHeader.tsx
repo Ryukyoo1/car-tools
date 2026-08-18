@@ -10,10 +10,10 @@ export function HomeHeader() {
     <header className="relative z-10 flex items-start justify-between gap-4 px-6 pt-8 sm:px-12 sm:pt-9">
       <div>
         <h1 className="text-[28px] font-medium leading-none tracking-tight text-white sm:text-[30px]">
-          CAR TOOLS
+          TOOLS
         </h1>
         <p className="mt-2 text-[11px] font-medium tracking-[0.18em] text-white/35">
-          CAR UTILITY SYSTEM
+          IN-CAR UTILITIES
         </p>
       </div>
 

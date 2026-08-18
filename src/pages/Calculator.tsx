@@ -118,9 +118,9 @@ function SimpleCalculator() {
     <div className="mx-auto w-full max-w-md">
       <GlassSurface
         variant="panel"
-        className="mb-4 w-full p-6 text-right"
+        className="mb-4 w-full p-7 text-right"
       >
-        <div className="tnum min-h-[3.5rem] break-words text-5xl font-light text-white">
+        <div className="tnum min-h-[4.5rem] break-words text-6xl font-light text-white">
           {display === '' ? '0' : display}
         </div>
       </GlassSurface>
@@ -131,7 +131,7 @@ function SimpleCalculator() {
             variant={k.variant ?? 'secondary'}
             size="lg"
             onClick={k.onClick}
-            className="text-2xl"
+            className="text-3xl"
           >
             {k.label}
           </GlassButton>

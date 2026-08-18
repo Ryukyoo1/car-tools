@@ -9,7 +9,6 @@ const Compass = lazy(() => import('@/pages/Compass'))
 const Timer = lazy(() => import('@/pages/Timer'))
 const Calculator = lazy(() => import('@/pages/Calculator'))
 const Parking = lazy(() => import('@/pages/Parking'))
-const Charging = lazy(() => import('@/pages/Charging'))
 const Measure = lazy(() => import('@/pages/Measure'))
 const Flashlight = lazy(() => import('@/pages/Flashlight'))
 const Weather = lazy(() => import('@/pages/Weather'))
@@ -48,7 +47,6 @@ export default function App() {
               <Route path="/timer" element={<Timer />} />
               <Route path="/calculator" element={<Calculator />} />
               <Route path="/parking" element={<Parking />} />
-              <Route path="/charging" element={<Charging />} />
               <Route path="/measure" element={<Measure />} />
               <Route path="/flashlight" element={<Flashlight />} />
               <Route path="/weather" element={<Weather />} />

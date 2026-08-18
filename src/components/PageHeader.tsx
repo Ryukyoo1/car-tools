@@ -15,7 +15,7 @@ export function PageHeader({ title }: PageHeaderProps) {
         className="flex min-h-[44px] items-center gap-2 rounded-xl px-2 -ml-2 text-white/80 transition-colors hover:bg-white/5 hover:text-white"
       >
         <ArrowLeft className="h-6 w-6" />
-        <span className="text-sm font-medium tracking-wide">CAR TOOLS</span>
+        <span className="text-sm font-medium tracking-wide">TOOLS</span>
       </button>
       <h1 className="ml-auto text-sm font-semibold uppercase tracking-[0.2em] text-white/50 sm:text-base">
         {title}

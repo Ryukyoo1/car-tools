@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import type { AmbientSource } from '@/types/ambient'
+import type { AmbientCategory } from '@/types/ambient'
 import { RainScene } from './RainScene'
 import { OceanScene } from './OceanScene'
 import { ForestScene } from './ForestScene'
@@ -8,7 +8,7 @@ import { CafeScene } from './CafeScene'
 import { RoadScene } from './RoadScene'
 
 interface AmbientSceneProps {
-  source: AmbientSource
+  source: AmbientCategory
   reduced: boolean
 }
 

@@ -33,11 +33,11 @@ export function TopBar({ locationName, onOpenLocation }: TopBarProps) {
     <header className="relative z-10 flex items-center justify-between gap-3 px-4 py-3 sm:px-8 sm:py-4">
       <button
         onClick={() => navigate('/')}
-        aria-label="返回 CAR TOOLS"
+        aria-label="返回 TOOLS"
         className="flex min-h-[60px] items-center gap-2 rounded-xl px-2 -ml-2 text-white/75 transition-colors hover:bg-white/5 hover:text-white"
       >
         <ArrowLeft className="h-6 w-6" strokeWidth={1.6} />
-        <span className="text-sm font-light tracking-wide">CAR TOOLS</span>
+        <span className="text-sm font-light tracking-wide">TOOLS</span>
       </button>
 
       <div className="absolute left-1/2 flex -translate-x-1/2 flex-col items-center text-center">

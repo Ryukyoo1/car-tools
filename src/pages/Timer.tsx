@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ToolPage } from '@/components/layout/ToolPage'
 import { GlassSurface } from '@/components/ui/GlassSurface'
 import { GlassButton } from '@/components/ui/GlassButton'
@@ -10,6 +10,20 @@ import { Play, Pause, RotateCcw, Flag } from 'lucide-react'
 type WebkitWindow = Window & { webkitAudioContext?: typeof AudioContext }
 
 const QUICK = [1, 5, 10, 30]
+
+/** Returns a value that increments once per whole second — used to pulse the border in sync with the digits. */
+function useSecondBeat(ms: number): number {
+  const [beat, setBeat] = useState(0)
+  const last = useRef(-1)
+  useEffect(() => {
+    const sec = Math.floor(ms / 1000)
+    if (sec !== last.current) {
+      last.current = sec
+      setBeat((b) => b + 1)
+    }
+  }, [ms])
+  return beat
+}
 
 function playBeep() {
   try {
@@ -43,7 +57,7 @@ function requestNotificationPermission() {
 function notifyFinished() {
   try {
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('CAR TOOLS', { body: 'Timer finished.' })
+      new Notification('TOOLS', { body: 'Timer finished.' })
     }
   } catch {
     /* ignore */
@@ -53,6 +67,7 @@ function notifyFinished() {
 function StopwatchPanel() {
   const { elapsed, running, start, pause, reset, lap } = useStopwatch()
   const [laps, setLaps] = useState<number[]>([])
+  const beat = useSecondBeat(elapsed)
 
   const addLap = () => setLaps((prev) => [...prev, lap()])
 
@@ -60,51 +75,58 @@ function StopwatchPanel() {
     <GlassSurface
       variant="panel"
       glow
-      className="flex w-full max-w-2xl flex-col items-center gap-8 rounded-lg p-8"
+      className="relative flex w-full max-w-2xl flex-col items-center gap-8 rounded-lg p-8"
     >
-      <div className="tnum font-extralight leading-none tracking-tight text-white text-7xl sm:text-8xl">
-        {formatDuration(elapsed / 1000)}
-      </div>
-
-      <div className="flex w-full flex-wrap items-center justify-center gap-3">
-        {!running ? (
-          <GlassButton variant="primary" size="lg" onClick={start}>
-            <Play className="h-6 w-6" strokeWidth={1.8} /> Start
-          </GlassButton>
-        ) : (
-          <GlassButton variant="secondary" size="lg" onClick={pause}>
-            <Pause className="h-6 w-6" strokeWidth={1.8} /> Pause
-          </GlassButton>
-        )}
-        <GlassButton variant="secondary" size="lg" onClick={addLap}>
-          <Flag className="h-6 w-6" strokeWidth={1.8} /> Lap
-        </GlassButton>
-        <GlassButton
-          variant="ghost"
-          size="lg"
-          onClick={() => {
-            reset()
-            setLaps([])
-          }}
-        >
-          <RotateCcw className="h-6 w-6" strokeWidth={1.8} /> Reset
-        </GlassButton>
-      </div>
-
-      {laps.length > 0 && (
-        <div className="grid w-full max-w-xs grid-cols-2 gap-2">
-          {laps.map((l, i) => (
-            <div
-              key={i}
-              className="glass-soft flex items-center justify-between rounded-md px-4 py-3 text-sm"
-            >
-              <span className="font-medium tracking-wide text-muted">LAP {i + 1}</span>
-              <span className="tnum text-white/90">{formatDuration(l / 1000)}</span>
-            </div>
-          ))}
-        </div>
+      {running && (
+        <div
+          key={beat}
+          aria-hidden
+          className="timer-beat-ring pointer-events-none absolute inset-0 rounded-lg"
+        />
       )}
-    </GlassSurface>
+      <div className="tnum font-light leading-none tracking-tight text-white text-8xl sm:text-9xl [text-shadow:0_0_28px_rgba(255,255,255,0.28)] rounded-[2rem] border border-white/12 px-10 py-3">
+        {formatDuration(elapsed)}
+      </div>
+
+        <div className="flex w-full flex-wrap items-center justify-center gap-3">
+          {!running ? (
+            <GlassButton variant="primary" size="lg" onClick={start}>
+              <Play className="h-6 w-6" strokeWidth={1.8} /> Start
+            </GlassButton>
+          ) : (
+            <GlassButton variant="secondary" size="lg" onClick={pause}>
+              <Pause className="h-6 w-6" strokeWidth={1.8} /> Pause
+            </GlassButton>
+          )}
+          <GlassButton variant="secondary" size="lg" onClick={addLap}>
+            <Flag className="h-6 w-6" strokeWidth={1.8} /> Lap
+          </GlassButton>
+          <GlassButton
+            variant="ghost"
+            size="lg"
+            onClick={() => {
+              reset()
+              setLaps([])
+            }}
+          >
+            <RotateCcw className="h-6 w-6" strokeWidth={1.8} /> Reset
+          </GlassButton>
+        </div>
+
+        {laps.length > 0 && (
+          <div className="grid w-full max-w-xs grid-cols-2 gap-2">
+            {laps.map((l, i) => (
+              <div
+                key={i}
+                className="glass-soft flex items-center justify-between rounded-md px-4 py-3 text-sm"
+              >
+                <span className="font-medium tracking-wide text-muted">LAP {i + 1}</span>
+                <span className="tnum text-white/90">{formatDuration(l)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </GlassSurface>
   )
 }
 
@@ -113,6 +135,7 @@ function CountdownPanel() {
   const [custom, setCustom] = useState('')
   const [activePreset, setActivePreset] = useState<number | null>(5)
   const [durationMs, setDurationMs] = useState(300_000)
+  const beat = useSecondBeat(remaining)
 
   useEffect(() => {
     if (finished) {
@@ -144,10 +167,17 @@ function CountdownPanel() {
     <GlassSurface
       variant="panel"
       glow
-      className="flex w-full max-w-2xl flex-col items-center gap-8 rounded-lg p-8"
+      className="relative flex w-full max-w-2xl flex-col items-center gap-8 rounded-lg p-8"
     >
+      {running && (
+        <div
+          key={beat}
+          aria-hidden
+          className="timer-beat-ring pointer-events-none absolute inset-0 rounded-lg"
+        />
+      )}
       <div className="relative flex items-center justify-center">
-        <svg viewBox="0 0 240 240" className="h-64 w-64">
+        <svg viewBox="0 0 240 240" className="h-72 w-72">
           <circle
             cx="120"
             cy="120"
@@ -173,8 +203,8 @@ function CountdownPanel() {
             }}
           />
         </svg>
-        <div className="tnum absolute font-extralight leading-none tracking-tight text-white text-6xl">
-          {formatDuration(remaining / 1000)}
+        <div className="tnum absolute font-light leading-none tracking-tight text-white text-7xl sm:text-8xl [text-shadow:0_0_24px_rgba(255,255,255,0.28)]">
+          {formatDuration(remaining)}
         </div>
       </div>
 
@@ -232,7 +262,7 @@ function CountdownPanel() {
           <RotateCcw className="h-6 w-6" strokeWidth={1.8} /> Reset
         </GlassButton>
       </div>
-    </GlassSurface>
+      </GlassSurface>
   )
 }
 

@@ -14,15 +14,36 @@ export default function Flashlight() {
   const streamRef = useRef<MediaStream | null>(null)
   const [mode, setMode] = useState<Mode>('loading')
   const [torchOn, setTorchOn] = useState(false)
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null)
 
   const cleanup = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop())
     streamRef.current = null
   }
 
+  const requestWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await (navigator as Navigator & { wakeLock: { request: (t: 'screen') => Promise<WakeLockSentinel> } }).wakeLock.request('screen')
+      }
+    } catch {
+      /* wake lock unavailable — bright screen still works */
+    }
+  }
+
+  const releaseWakeLock = () => {
+    try {
+      void wakeLockRef.current?.release()
+    } catch {
+      /* ignore */
+    }
+    wakeLockRef.current = null
+  }
+
   const enterBright = () => {
     cleanup()
     setMode('bright')
+    void requestWakeLock()
   }
 
   useEffect(() => {
@@ -73,6 +94,15 @@ export default function Flashlight() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Re-acquire the wake lock if the browser drops it when the tab is hidden.
+  useEffect(() => {
+    const onVisible = () => {
+      if (mode === 'bright' && !wakeLockRef.current) void requestWakeLock()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [mode])
+
   const toggleTorch = async () => {
     const track = streamRef.current?.getVideoTracks()[0]
     if (!track) return
@@ -86,15 +116,17 @@ export default function Flashlight() {
   }
 
   const exit = () => {
+    releaseWakeLock()
     cleanup()
     navigate('/')
   }
 
-  // Bright screen mode — full white overlay, tap anywhere to exit.
+  // Bright screen mode — full white overlay at maximum brightness, tap to exit.
   if (mode === 'bright') {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white text-black">
         <button onClick={exit} className="flex flex-col items-center gap-4 p-10" aria-label="Exit flashlight">
+          <span className="text-sm font-medium uppercase tracking-[0.3em] text-black/50">Max Brightness</span>
           <FlashlightIcon className="h-24 w-24" strokeWidth={1.4} />
           <span className="text-2xl font-semibold">TAP TO EXIT</span>
         </button>
@@ -121,6 +153,9 @@ export default function Flashlight() {
             <p className="text-secondary">Torch {torchOn ? 'ON' : 'OFF'}</p>
             <GlassButton variant={torchOn ? 'danger' : 'primary'} size="lg" onClick={toggleTorch}>
               <Power className="h-6 w-6" strokeWidth={1.8} /> {torchOn ? 'Turn Off' : 'Turn On'}
+            </GlassButton>
+            <GlassButton variant="ghost" size="lg" onClick={enterBright}>
+              <FlashlightIcon className="h-6 w-6" strokeWidth={1.8} /> Max Bright Screen
             </GlassButton>
           </>
         )}
