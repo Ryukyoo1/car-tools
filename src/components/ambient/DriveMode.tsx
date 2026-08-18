@@ -2,11 +2,11 @@ import { motion } from 'framer-motion'
 import { Gauge, X } from 'lucide-react'
 import { PlayButton } from './PlayButton'
 import { TimerControl } from './TimerControl'
-import type { SourceMeta } from './SourceMeta'
+import type { CategoryMeta } from './SourceMeta'
 import type { TimerMinutes } from '@/types/ambient'
 
 interface DriveModeProps {
-  meta: SourceMeta
+  meta: CategoryMeta
   currentTitle?: string
   playing: boolean
   onTogglePlay: () => void

@@ -22,7 +22,7 @@ export default function Ambient() {
 
   const [driveMode, setDriveMode] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [activeCategory, setActiveCategory] = useState<AmbientCategory>('rain')
+  const [activeCategory, setActiveCategory] = useState<AmbientCategory | null>('rain')
   const [showSafety, setShowSafety] = useState(() => {
     try {
       return localStorage.getItem(SAFETY_KEY) !== '1'
